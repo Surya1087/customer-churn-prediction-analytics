@@ -1,6 +1,7 @@
 from pathlib import Path
 import json
 import sys
+from urllib.request import urlretrieve
 import pandas as pd
 import streamlit as st
 import plotly.express as px
@@ -9,12 +10,26 @@ from churn_analytics.data import load_data
 from churn_analytics.predict import load_model, predict_risk
 from churn_analytics.segmentation import segment
 from churn_analytics.explainability import feature_importance
+from churn_analytics.modeling import train
 
 ROOT = Path(__file__).parents[1]
 st.set_page_config(page_title="Customer Churn Analytics", layout="wide")
 st.title("Customer Churn Prediction & Business Analytics")
 metrics_path = ROOT / "models/metrics.json"; data_path = ROOT / "data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv"
-if not metrics_path.exists() or not data_path.exists(): st.warning("Run data preparation and model training first."); st.stop()
+@st.cache_resource
+def ensure_runtime_files():
+    data_path.parent.mkdir(parents=True, exist_ok=True)
+    if not data_path.exists():
+        urlretrieve("https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/master/data/Telco-Customer-Churn.csv", data_path)
+    if not metrics_path.exists() or not (ROOT / "models/final_model.joblib").exists():
+        train(load_data(data_path), ROOT / "models")
+
+try:
+    ensure_runtime_files()
+except Exception as error:
+    st.error("The application could not prepare its dataset and model artifacts.")
+    st.caption(str(error))
+    st.stop()
 metrics = json.loads(metrics_path.read_text()); df = load_data(data_path)
 page = st.sidebar.radio("Section", ["Executive Overview", "Exploratory Analytics", "Model Performance", "Prediction", "Segmentation", "Business Insights"])
 
