@@ -10,7 +10,6 @@ from churn_analytics.data import load_data
 from churn_analytics.predict import load_model, predict_risk
 from churn_analytics.segmentation import segment
 from churn_analytics.explainability import feature_importance
-from churn_analytics.modeling import train
 
 ROOT = Path(__file__).parents[1]
 st.set_page_config(page_title="Customer Churn Analytics", layout="wide")
@@ -22,7 +21,7 @@ def ensure_runtime_files():
     if not data_path.exists():
         urlretrieve("https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/master/data/Telco-Customer-Churn.csv", data_path)
     if not metrics_path.exists() or not (ROOT / "models/final_model.joblib").exists():
-        train(load_data(data_path), ROOT / "models")
+        raise FileNotFoundError("Saved model artifacts are missing from the deployment repository.")
 
 try:
     ensure_runtime_files()

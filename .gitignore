@@ -9,6 +9,9 @@ data/raw/*
 data/processed/*
 database/*.db
 models/*
+!models/final_model.joblib
+!models/churn_pipeline.joblib
+!models/metrics.json
 reports/figures/*
 reports/metrics/*
 *.log
